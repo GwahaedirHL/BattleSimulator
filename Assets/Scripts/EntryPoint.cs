@@ -8,7 +8,6 @@ public class EntryPoint : MonoBehaviour
     [SerializeField]
     MainMenu menuView;
 
-
     void Start() 
     {
         MainMenuController menuController = new MainMenuController(unitsConfig, menuView);

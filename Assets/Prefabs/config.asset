@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f31e47a68ec02964287ab983ad9b0210, type: 3}
   m_Name: config
   m_EditorClassIdentifier: Assembly-CSharp::UnitsConfig
-  ArmySize: 10
+  ArmySize: 20
   maxDistinctUnits: 5
   UnitShapes:
   - {fileID: 10913, guid: 0000000000000000f000000000000000, type: 0}

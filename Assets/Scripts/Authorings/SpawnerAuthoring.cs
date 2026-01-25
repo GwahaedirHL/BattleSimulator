@@ -36,7 +36,7 @@ public class SpawnerAuthoring : MonoBehaviour {
 
     public class Baker : Baker<SpawnerAuthoring> {
         public override void Bake(SpawnerAuthoring a) {
-            var e = GetEntity(TransformUsageFlags.Dynamic);
+            var e = GetEntity(TransformUsageFlags.None);
 
             AddComponent(e, new SpawnerData {
                 SpherePrefab = GetEntity(a.Sphere, TransformUsageFlags.Dynamic | TransformUsageFlags.Renderable),

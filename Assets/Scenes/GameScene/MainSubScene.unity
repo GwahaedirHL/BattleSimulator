@@ -144,7 +144,7 @@ Transform:
   m_GameObject: {fileID: 241499342}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -8, y: 1, z: -15}
+  m_LocalPosition: {x: -8, y: 1, z: -10}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -184,7 +184,7 @@ MonoBehaviour:
   Army0SpawnPoint: {fileID: 1791534062}
   Army1SpawnPoint: {fileID: 241499343}
   UnitsPerArmy: 20
-  UnitsPerRow: 10
+  UnitsPerRow: 5
   Spacing: 2
   ArmyMarker: {fileID: 0}
 --- !u!4 &1703866415
@@ -227,7 +227,58 @@ Transform:
   m_GameObject: {fileID: 1791534061}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 8, y: 1, z: -15}
+  m_LocalPosition: {x: 8, y: 1, z: -10}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &2087300844
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2087300846}
+  - component: {fileID: 2087300845}
+  m_Layer: 0
+  m_Name: MeteorSpawner
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &2087300845
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2087300844}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3ff732c0a7759dc49b555e1832103df3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MeteorSpawnerAuthoring
+  MeteorPrefab: {fileID: 2688299292569128140, guid: 05e31ee81072380468282166d4f9c7d0, type: 3}
+  SpawnPositon:
+    x: 0
+    y: 60
+    z: 0
+  Radius: 50
+  Damage: 100
+--- !u!4 &2087300846
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2087300844}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 45, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -240,3 +291,4 @@ SceneRoots:
   - {fileID: 1703866415}
   - {fileID: 1791534062}
   - {fileID: 241499343}
+  - {fileID: 2087300846}

@@ -4,7 +4,7 @@ using Unity.Mathematics;
 using Unity.Rendering;
 
 [BurstCompile]
-[UpdateInGroup(typeof(SimulationSystemGroup))]
+[UpdateInGroup(typeof(InitializationSystemGroup))]
 [UpdateAfter(typeof(SpawnSystem))]
 public partial struct ArmyMarkerColorSystem : ISystem
 {
