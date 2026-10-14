@@ -1,176 +1,78 @@
-# BattleSimulator
-Тестовое задние Z - media (Unity development)
+# Battle Simulator — Unity ECS
 
-Время выполнения 24ч
+A battle between two armies built on **Unity Entities (ECS 1.x)** with **Burst** and the **Job System**; the UI is plain MonoBehaviour MVC.
+Test task for Z-Media, completed in 24 hours.
 
-# Общее описание
+<!-- Add a gameplay GIF here: ![Battle](Docs/battle.gif) -->
 
-Проект представляет собой симуляцию боя между двумя армиями, реализованную в Unity с использованием Unity Entities (ECS) для геймплея и MVC-подхода для пользовательского интерфейса.
+## Highlights
 
-## Архитектура
+- **Gameplay fully in ECS** — spawning, target acquisition, movement, combat, death and the end-of-battle check are all systems.
+- **Spatial hashing instead of O(N²)** — targets are found through a grid with an expanding search radius (`TargetAcquireGridSystem`).
+- **Burst-compiled jobs** — target search and movement run as `IJobEntity` jobs; allies keep apart via a separate avoidance grid.
+- **Stuck detection** — units that stop closing in on their target automatically pick a new one.
+- **Player ability** — a meteor with AoE damage, triggered from the UI with a cooldown.
+- **UI isolated from ECS** — UI → ECS via one-frame request components, ECS → UI via events.
 
-Проект использует гибридную архитектуру:
+The architecture is designed to scale to thousands of units on screen.
 
- - Gameplay — Unity ECS (Entities 1.x)
- - UI — MVC поверх MonoBehaviour
- - Связь UI ↔ ECS — через request-компоненты и события
+## Gameplay
 
- Использование ECS и DOTS, с применением Burst, позволяет легко масштабировать проекти спавнить на сцене большое количество юнитов (тысячи) без потери прозводительности.
- UI сторона общается с ECS стороной по средством компонентов-реквестов для вызова реакций со стороны систем.
+The main menu generates two armies. A unit type is a combination of shape (sphere / cube), color and size from `UnitsConfig`; army composition is randomized with a guaranteed number of distinct types.
+In the battle scene both armies spawn in grid formation, units lock onto the nearest enemy, close in and attack until one army is destroyed. Army markers are colored per side.
 
-## Архитектура проекта
+## Architecture
 
-Проект построен на **гибридной архитектуре**, сочетающей **Unity ECS (Entities 1.x)** для геймплейной симуляции и **MVC-подход** для пользовательского интерфейса. Такое разделение позволяет эффективно масштабировать симуляцию и при этом сохранить простой и поддерживаемый UI-код.
+```
+UI (MonoBehaviour, MVC)                     ECS (Entities 1.x)
+GameUI / MainMenu        (View)
+GameUiController / ...   (Controller) ──► request components ──► systems
+                                      ◄── battle-end event   ◄── CheckEndBattleSystem
+```
 
----
+### ECS systems
 
-### Общая схема
+| System | Responsibility |
+|---|---|
+| `SpawnSystem` | Spawns both armies in grid formation from baked data |
+| `ArmyMarkerColorSystem` | Colors army markers once after spawn (URP material property) |
+| `TargetAcquireGridSystem` | Builds a spatial grid and finds the nearest enemy with an expanding search (Burst jobs) |
+| `BuildAvoidDataSystem` | Builds the ally grid used for separation |
+| `MoveToTargetSystem` | Moves units to targets with minimum distance and ally separation (Burst job) |
+| `AttackSystem` | Range and cooldown checks, applies damage |
+| `DeathSystem` | Destroys dead units and clears targets that pointed at them |
+| `RetargetStuckSystem` | Detects units that stopped approaching and forces retargeting |
+| `CheckEndBattleSystem` | Counts units per army and raises the battle-end event for the UI |
+| `MeteorSpawnSystem` / `MeteorMovementSystem` / `MeteorImpactSystem` | Meteor ability: spawn on request, fall, AoE damage |
 
-- **Gameplay-слой**  
-  Реализован полностью на ECS и отвечает за:
-  - спавн юнитов,
-  - поиск и выбор целей,
-  - движение,
-  - атаку и урон,
-  - проверку окончания боя,
-  - дополнительные геймплейные события (метеор).
+### Components
 
-- **UI-слой**  
-  Реализован на MonoBehaviour с использованием MVC:
-  - View — отображение состояния игры,
-  - Controller — обработка пользовательских действий,
-  - Model (UI) — локальные UI-состояния (например, cooldown).
+- **Unit data:** `HealthComponent`, `AttackComponent`, `SpeedComponent`, `AttackRangeComponent`, `AttackSpeedComponent`, `AttackCooldownComponent`
+- **Tags and state:** `ArmyOneTag`, `ArmyTwoTag`, `GameStartedTag`, `TargetLockedData`, `RetargetData`
+- **Requests (one-frame events):** `SpawnRequest`, `MeteorSpawnRequest`, `MeteorMovementRequest`, `MeteorImpactRequest`
 
-- **Связь UI ↔ ECS**  
-  Осуществляется через:
-  - ECS request-компоненты (one-frame события),
-  - события (events) из ECS в UI.
+### UI (MVC)
 
----
+- **Views:** `GameUI` (meteor button, cooldown indicator, victory screen, back to menu), `MainMenu` (army generation, composition, battle start)
+- **Controllers:** `GameUiController` (creates ECS requests, listens for battle end), `MainMenuController` (builds army data)
+- **Cooldown:** a MonoBehaviour timer kept outside ECS — it affects only the UI, not the simulation
+- **Entry points:** `EntryPoint` (menu), `GameEntryPoint` (wires game UI to gameplay)
 
-### Gameplay (ECS)
+## Project structure
 
-#### Типы компонентов
-- **Данные юнита**  
-  `HealthComponent`, `AttackComponent`, `SpeedComponent`,  
-  `AttackRangeComponent`, `AttackSpeedComponent`, `AttackCooldownComponent`
+```
+Assets/Scripts/
+├── Authorings/   bakers for units, spawner, meteor
+├── Configs/      UnitsConfig (ScriptableObject), ArmiesConfig
+├── Systems/      ECS systems
+└── UI/           views, controllers, cooldown
+```
 
-- **Теги и состояние**  
-  `ArmyOneTag`, `ArmyTwoTag`, `GameStartedTag`,  
-  `TargetLockedData`, `RetargetData`
+## Running
 
-- **Request-компоненты**  
-  Используются как события:
-  - `SpawnRequest`
-  - `MeteorSpawnRequest`
-  - `MeteorMovementRequest`
-  - `MeteorImpactRequest`
+- Unity **6000.3.4f1**, URP, ECS packages (`com.unity.feature.ecs`)
+- Open `Assets/Scenes/MainMenuScene.unity` → Play → generate armies → start the battle
 
----
+## License
 
-#### Основные системы
-
-- **SpawnSystem**  
-  Создаёт юнитов двух армий при старте боя на основе данных из authoring-компонентов.
-
-- **TargetAcquireGridSystem**  
-  Выполняет поиск ближайшей цели с использованием grid-based spatial hashing.  
-  Позволяет избежать O(N²) перебора при большом количестве юнитов.
-
-- **MoveToTargetSystem**  
-  Отвечает за движение юнитов к цели:
-  - использует Jobs + Burst,
-  - учитывает минимальную дистанцию,
-  - реализует избегание союзников (separation).
-
-- **AttackSystem**  
-  Обрабатывает атаку:
-  - проверяет дистанцию,
-  - учитывает cooldown атаки,
-  - уменьшает здоровье цели.
-
-- **RetargetStuckSystem**  
-  Обнаруживает ситуации, когда юнит перестал эффективно сближаться с целью,  
-  и инициирует поиск новой цели.
-
-- **CheckEndBattleSystem**  
-  Отслеживает количество юнитов в армиях и определяет победителя.  
-  Уведомляет UI через event.
-
----
-
-### Дополнительная механика: Метеор (ECS)
-
-Механика реализована через request-based подход:
-
-- `MeteorSpawnRequest` — запрос от UI
-- `MeteorSpawnSystem` — создаёт метеор
-- `MeteorMovementSystem` — управляет падением
-- `MeteorImpactSystem` — наносит AoE-урон юнитам в радиусе
-
-Параметры метеора (радиус, урон, позиция) задаются через `MeteorSpawnerAuthoring`.
-
----
-
-### UI-слой (MVC)
-
-#### View
-- **GameUI**
-  - кнопка вызова метеора,
-  - индикатор кулдауна,
-  - экран победы,
-  - кнопка возврата в меню.
-
-- **MainMenu**
-  - генерация армий,
-  - отображение состава,
-  - запуск сцены боя.
-
----
-
-#### Controller
-- **GameUiController**
-  - подписывается на события UI,
-  - создаёт ECS request-компоненты,
-  - подписывается на события ECS (окончание боя),
-  - управляет состоянием UI.
-
-- **MainMenuController**
-  - формирует данные армий,
-  - управляет логикой главного меню,
-  - подготавливает данные для ECS-спавна.
-
----
-
-#### UI-модель / сервисы
-- **Cooldown**
-  - универсальный MonoBehaviour-таймер,
-  - управляет кулдауном способности,
-  - уведомляет UI через события.
-
-Cooldown реализован вне ECS, так как:
-- не влияет на симуляцию,
-- используется только на уровне интерфейса,
-- снижает связность UI и gameplay.
-
----
-
-### Entry Points
-
-- **EntryPoint**
-  - инициализация главного меню.
-
-- **GameEntryPoint**
-  - инициализация игрового UI,
-  - создание `GameUiController` и связывание UI с gameplay.
-
----
-
-### Итог архитектуры
-
-- ECS используется для всех performance-критичных задач.
-- UI полностью изолирован от ECS-реализации.
-- Связь между слоями осуществляется через чётко определённые точки (requests и events).
-- Архитектура масштабируема и пригодна для дальнейшего развития проекта.
-
- 
+MIT
