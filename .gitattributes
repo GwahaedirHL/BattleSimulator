@@ -3,3 +3,4 @@
 *.hlsl    linguist-vendored
 *.cginc   linguist-vendored
 *.compute linguist-vendored
+*.wlt     linguist-vendored
