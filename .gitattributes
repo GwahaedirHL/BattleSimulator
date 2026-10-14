@@ -1,0 +1,5 @@
+# Шейдеры из пакетов и ассетов не считать в статистике языков
+*.shader  linguist-vendored
+*.hlsl    linguist-vendored
+*.cginc   linguist-vendored
+*.compute linguist-vendored
